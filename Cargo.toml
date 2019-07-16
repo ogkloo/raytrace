@@ -1,7 +1,7 @@
 [package]
 name = "raytrace"
 version = "0.1.0"
-authors = ["no <no>"]
+authors = ["Sam Shippey <sshippey@pdx.edu>", "Katelyn Rule <krule@pdx.edu>"]
 edition = "2018"
 
 [dependencies]
