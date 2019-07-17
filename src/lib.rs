@@ -48,7 +48,7 @@ impl Viewport {
     /// of whatever it intersects. Will later draw recursively.
     // Maybe it should actually just place them in a big pixel buffer, or maybe this should be
     // called by a private method that does that.
-    pub fn draw_ray<T: RayCast<f64>>(ray: Ray<f64>, object: T) -> Option<image::Rgb<u64>> {
+    pub fn draw_ray<T: RayCast<f64>>(ray: &Ray<f64>, object: &T) -> Option<image::Rgb<u64>> {
         if object.intersects_ray(&Isometry3::identity(), &ray) {
             Some(image::Rgb([0, 0, 0]))
         } else {
