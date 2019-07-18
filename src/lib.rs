@@ -84,6 +84,7 @@ impl<R: RayCast<f64>> Scene<R> {
     // a video a bit easier if we decided to implement that, but given the simplicity of doing that
     // (all we'd need to do is remove the write and return the buffer) I'm keeping it this way
     // until we come up with something better.
+    // I WILL test this by tomorrow I promise.
     pub fn render(&self, filename: String) {
         let mut img: image::RgbImage =
             ImageBuffer::new(self.camera.dimensions.0, self.camera.dimensions.1);
