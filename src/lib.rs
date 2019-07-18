@@ -41,7 +41,7 @@ impl Viewport {
     }
 
     /// Makes an imagebuffer from the dimensions of the viewport.
-    pub fn make_imagebuffer_from_viewport(&self) -> image::RgbImage {
+    pub fn imagebuffer(&self) -> image::RgbImage {
         ImageBuffer::new(self.dimensions.0, self.dimensions.1)
     }
 }
@@ -88,9 +88,9 @@ impl<R: RayCast<f64>> Scene<R> {
     // a video a bit easier if we decided to implement that, but given the simplicity of doing that
     // (all we'd need to do is remove the write and return the buffer) I'm keeping it this way
     // until we come up with something better.
-    // I WILL test this by tomorrow I promise.
+    // TODO: Make this generate a bunch of other rays.
     pub fn render(&self, filename: String) {
-        let mut img: image::RgbImage = self.camera.make_imagebuffer_from_viewport();
+        let mut img: image::RgbImage = self.camera.imagebuffer();
         for (x, y, pixel) in img.enumerate_pixels_mut() {
             for object in self.objects.iter() {
                 let res = Viewport::draw_ray(&self.camera.eye, &object);

@@ -12,7 +12,9 @@ fn main() {
         std::f64::consts::PI / 2.0,
         (xsize, ysize),
     );
-    println!("{:?}", view);
+    // Note on building polyhedrons:
+    // The position of the polyhedron must be noted as an isometry in 3d
+    // The RayCast objects needs to be implemented as an f64
     let cube: Polyhedron<Cuboid<f64>> = Polyhedron::new(
         Cuboid::new(Vector3::new(1.0, 1.0, 1.0)),
         image::Rgb([0, 0, 0]),
