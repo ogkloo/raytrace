@@ -17,13 +17,19 @@ pub struct Viewport {
 }
 
 impl Viewport {
-    pub fn new(p: Point<f64>, e: Vector3<f64>, u: Vector3<f64>, f: f64, dim: (u32, u32)) -> Self {
+    pub fn new(
+        position: Point<f64>,
+        eye: Vector3<f64>,
+        up: Vector3<f64>,
+        fov: f64,
+        dimensions: (u32, u32),
+    ) -> Self {
         Viewport {
-            position: p,
-            eye: Ray::new(p, e),
-            up: Ray::new(p, u),
-            fov: f,
-            dimensions: dim,
+            position,
+            eye: Ray::new(position, eye),
+            up: Ray::new(position, up),
+            fov,
+            dimensions,
         }
     }
 
@@ -48,6 +54,7 @@ impl Viewport {
 
 /// A shape and its material properties
 // Other properties go here as we progress
+#[derive(Debug)]
 pub struct Polyhedron<R: RayCast<f64>> {
     shape: R,
     color: image::Rgb<u8>,
@@ -56,11 +63,8 @@ pub struct Polyhedron<R: RayCast<f64>> {
 }
 
 impl<R: RayCast<f64>> Polyhedron<R> {
-    pub fn new(object: R, c: image::Rgb<u8>) -> Self {
-        Polyhedron {
-            shape: object,
-            color: c,
-        }
+    pub fn new(shape: R, color: image::Rgb<u8>) -> Self {
+        Polyhedron { shape, color }
     }
 }
 
@@ -68,6 +72,7 @@ impl<R: RayCast<f64>> Polyhedron<R> {
 // me thinks there's a better way to do this than force a user to look at... >>> <-- this ugly
 // thing. But I can't think of it right now and no one was really sure as trait aliasing is
 // experimental and I'd prefer to keep it to normal code right now.
+#[derive(Debug)]
 pub struct Scene<R: RayCast<f64>> {
     objects: Vec<Polyhedron<R>>,
     camera: Viewport,
@@ -75,11 +80,15 @@ pub struct Scene<R: RayCast<f64>> {
 }
 
 impl<R: RayCast<f64>> Scene<R> {
-    pub fn new(objs: Vec<Polyhedron<R>>, eye: Viewport, background: image::Rgb<u8>) -> Self {
+    pub fn new(
+        objects: Vec<Polyhedron<R>>,
+        camera: Viewport,
+        default_color: image::Rgb<u8>,
+    ) -> Self {
         Scene::<R> {
-            objects: objs,
-            camera: eye,
-            default_color: background,
+            objects,
+            camera,
+            default_color,
         }
     }
 
