@@ -13,33 +13,22 @@ pub struct Viewport {
     eye: Ray<f64>,
     up: Ray<f64>,
     fov: f64,
-    pub dimensions: (u32, u32),
-    depth: u64,
+    dimensions: (u32, u32),
 }
 
 impl Viewport {
-    pub fn new(
-        p: Point<f64>,
-        e: Vector3<f64>,
-        u: Vector3<f64>,
-        f: f64,
-        dim: (u32, u32),
-        dep: u64,
-    ) -> Self {
+    pub fn new(p: Point<f64>, e: Vector3<f64>, u: Vector3<f64>, f: f64, dim: (u32, u32)) -> Self {
         Viewport {
             position: p,
             eye: Ray::new(p, e),
             up: Ray::new(p, u),
             fov: f,
             dimensions: dim,
-            depth: dep,
         }
     }
 
-    /// Draws a ray at a certain angle and returns the color
-    /// of whatever it intersects. Will later draw recursively.
-    // Maybe it should actually just place them in a big pixel buffer, or maybe this should be
-    // called by a private method that does that.
+    /// Draws a ray at a certain angle and returns the color of whatever it
+    /// intersects. Note that the length of the vector does not matter.
     pub fn draw_ray<R: RayCast<f64>>(
         ray: &Ray<f64>,
         object: &Polyhedron<R>,
@@ -49,6 +38,11 @@ impl Viewport {
         } else {
             None
         }
+    }
+
+    /// Makes an imagebuffer from the dimensions of the viewport.
+    pub fn make_imagebuffer_from_viewport(&self) -> image::RgbImage {
+        ImageBuffer::new(self.dimensions.0, self.dimensions.1)
     }
 }
 
@@ -61,21 +55,31 @@ pub struct Polyhedron<R: RayCast<f64>> {
     // refractivity: f64,
 }
 
+impl<R: RayCast<f64>> Polyhedron<R> {
+    pub fn new(object: R, c: image::Rgb<u8>) -> Self {
+        Polyhedron {
+            shape: object,
+            color: c,
+        }
+    }
+}
+
 // Struct for a scene containing objects and 1 camera. When lights are added they go here. Part of
 // me thinks there's a better way to do this than force a user to look at... >>> <-- this ugly
 // thing. But I can't think of it right now and no one was really sure as trait aliasing is
 // experimental and I'd prefer to keep it to normal code right now.
-// For reference, RayCast<f64> is from ncollide.
 pub struct Scene<R: RayCast<f64>> {
-    objects: Vec<Box<Polyhedron<R>>>,
+    objects: Vec<Polyhedron<R>>,
     camera: Viewport,
+    default_color: image::Rgb<u8>,
 }
 
 impl<R: RayCast<f64>> Scene<R> {
-    pub fn new(objs: Vec<Box<Polyhedron<R>>>, eye: Viewport) -> Self {
+    pub fn new(objs: Vec<Polyhedron<R>>, eye: Viewport, background: image::Rgb<u8>) -> Self {
         Scene::<R> {
             objects: objs,
             camera: eye,
+            default_color: background,
         }
     }
 
@@ -86,13 +90,14 @@ impl<R: RayCast<f64>> Scene<R> {
     // until we come up with something better.
     // I WILL test this by tomorrow I promise.
     pub fn render(&self, filename: String) {
-        let mut img: image::RgbImage =
-            ImageBuffer::new(self.camera.dimensions.0, self.camera.dimensions.1);
-        for (_x, _y, pixel) in img.enumerate_pixels_mut() {
+        let mut img: image::RgbImage = self.camera.make_imagebuffer_from_viewport();
+        for (x, y, pixel) in img.enumerate_pixels_mut() {
             for object in self.objects.iter() {
-                match Viewport::draw_ray(&self.camera.eye, &object) {
+                let res = Viewport::draw_ray(&self.camera.eye, &object);
+                println!("{} {} {:?}", x, y, res);
+                match res {
                     Some(color) => *pixel = color,
-                    None => *pixel = image::Rgb([0, 0, 0]),
+                    None => *pixel = self.default_color,
                 }
             }
         }
