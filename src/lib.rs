@@ -89,7 +89,10 @@ impl<R: RayCast<f64>> Scene<R> {
             ImageBuffer::new(self.camera.dimensions.0, self.camera.dimensions.1);
         for (_x, _y, pixel) in img.enumerate_pixels_mut() {
             for object in self.objects.iter() {
-                *pixel = Viewport::draw_ray(&self.camera.eye, &object).unwrap();
+                match Viewport::draw_ray(&self.camera.eye, &object) {
+                    Some(color) => *pixel = color,
+                    None => *pixel = image::Rgb([0, 0, 0]),
+                }
             }
         }
         img.save(filename).unwrap();
