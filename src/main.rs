@@ -19,6 +19,7 @@ fn main() {
         Cuboid::new(Vector3::new(1.0, 1.0, 1.0)),
         image::Rgb([0, 0, 0]),
     );
+    // This is an example scene
     let scene: Scene<Cuboid<f64>> = Scene::new(vec![cube], view, image::Rgb([255, 255, 255]));
     scene.render("output.png".to_string());
 }
