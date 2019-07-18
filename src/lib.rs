@@ -5,9 +5,8 @@ use ncollide3d::math::Point;
 use ncollide3d::query::Ray;
 use ncollide3d::query::RayCast;
 
-/// Defines a viewport for a specific eye node
-/// with the eye node as the origin.
-/// FoV is in radians.
+/// Camera object for raytracing.
+// Ray is a pair of a Vector3 and a point.
 #[derive(Debug)]
 pub struct Viewport {
     position: Point<f64>,
@@ -19,7 +18,6 @@ pub struct Viewport {
 }
 
 impl Viewport {
-    /// Constructor
     pub fn new(
         p: Point<f64>,
         e: Vector3<f64>,
@@ -55,7 +53,7 @@ impl Viewport {
 }
 
 /// A shape and its material properties
-/// Other properties go here as we progress
+// Other properties go here as we progress
 pub struct Polyhedron<R: RayCast<f64>> {
     shape: R,
     color: image::Rgb<u8>,
@@ -63,21 +61,29 @@ pub struct Polyhedron<R: RayCast<f64>> {
     // refractivity: f64,
 }
 
+// Struct for a scene containing objects and 1 camera. When lights are added they go here. Part of
+// me thinks there's a better way to do this than force a user to look at... >>> <-- this ugly
+// thing. But I can't think of it right now and no one was really sure as trait aliasing is
+// experimental and I'd prefer to keep it to normal code right now.
+// For reference, RayCast<f64> is from ncollide.
 pub struct Scene<R: RayCast<f64>> {
-    // TODO
-    // Huge problem: Only one type in a scene I think?
-    objects: Vec<Polyhedron<R>>,
+    objects: Vec<Box<Polyhedron<R>>>,
     camera: Viewport,
 }
 
 impl<R: RayCast<f64>> Scene<R> {
-    pub fn new(objs: Vec<Polyhedron<R>>, eye: Viewport) -> Self {
+    pub fn new(objs: Vec<Box<Polyhedron<R>>>, eye: Viewport) -> Self {
         Scene::<R> {
             objects: objs,
             camera: eye,
         }
     }
 
+    // This is the full-on rendering function, complete with output to an image. Is it more
+    // reasonable to just give an image back? Perhaps. It might make stringing things together into
+    // a video a bit easier if we decided to implement that, but given the simplicity of doing that
+    // (all we'd need to do is remove the write and return the buffer) I'm keeping it this way
+    // until we come up with something better.
     pub fn render(&self, filename: String) {
         let mut img: image::RgbImage =
             ImageBuffer::new(self.camera.dimensions.0, self.camera.dimensions.1);
