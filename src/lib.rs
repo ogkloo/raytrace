@@ -6,7 +6,7 @@ use ncollide3d::query::Ray;
 use ncollide3d::query::RayCast;
 
 /// Camera object for raytracing.
-// Ray is a pair of a Vector3 and a point.
+// Ray is a pair of a Vector3 and a Point.
 #[derive(Debug)]
 pub struct Viewport {
     position: Point<f64>,
@@ -72,6 +72,7 @@ impl<R: RayCast<f64>> Polyhedron<R> {
 // me thinks there's a better way to do this than force a user to look at... >>> <-- this ugly
 // thing. But I can't think of it right now and no one was really sure as trait aliasing is
 // experimental and I'd prefer to keep it to normal code right now.
+/// Describes a scene, including what objects are in the scene, a camera, and a background color.
 #[derive(Debug)]
 pub struct Scene<R: RayCast<f64>> {
     objects: Vec<Polyhedron<R>>,
@@ -97,20 +98,23 @@ impl<R: RayCast<f64>> Scene<R> {
     // a video a bit easier if we decided to implement that, but given the simplicity of doing that
     // (all we'd need to do is remove the write and return the buffer) I'm keeping it this way
     // until we come up with something better.
+    /// Renders the full image to an output.
     pub fn render(&self, filename: String) {
         let mut img: image::RgbImage = self.camera.imagebuffer();
         for (x, y, pixel) in img.enumerate_pixels_mut() {
-            for object in self.objects.iter() {
+            for object in &self.objects {
+                // Generate the ray to a certain pixel. This currently has a bug where it goes from
+                // 1..1/size_of_side. This means the image usually won't render correctly.
                 let pixel_ray = Ray::new(
                     self.camera.position,
                     Vector3::new(
-                        1.0 - (x as f64 / (self.camera.dimensions.0 as f64)),
+                        1.0 - (2.0 * (x as f64 / (self.camera.dimensions.0 as f64))),
                         0.0,
-                        1.0 - (y as f64 / (self.camera.dimensions.1 as f64)),
+                        1.0 - (2.0 * (y as f64 / (self.camera.dimensions.1 as f64))),
                     ) + self.camera.eye.dir,
                 );
                 let res = Viewport::draw_ray(&pixel_ray, &object);
-                println!("{} {} {:?}", x, y, res);
+                // println!("{} {} {:?} {:?}", x, y, pixel_ray, res);
                 match res {
                     Some(color) => *pixel = color,
                     None => *pixel = self.default_color,

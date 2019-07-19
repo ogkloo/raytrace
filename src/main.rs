@@ -4,11 +4,11 @@ use ncollide3d::shape::*;
 use raytrace::*;
 
 fn main() {
-    let xsize = 1000;
-    let ysize = 1000;
+    let xsize = 400;
+    let ysize = 400;
     let view = Viewport::new(
-        Point::new(0.0, 9.0, 0.0),
-        Vector3::new(0.0, -1.0, 1.0),
+        Point::new(0.0, 2.5, 0.0),
+        Vector3::new(0.0, -1.0, 0.0),
         Vector3::new(0.0, 0.0, 1.0),
         std::f64::consts::PI / 2.0,
         (xsize, ysize),
