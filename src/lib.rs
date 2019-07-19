@@ -75,6 +75,7 @@ impl<R: RayCast<f64>> Polyhedron<R> {
 /// Describes a scene, including what objects are in the scene, a camera, and a background color.
 #[derive(Debug)]
 pub struct Scene<R: RayCast<f64>> {
+    // This is annoying but the Vec of Box gives me a warning that I'm not sure on how to fix.
     objects: Vec<Polyhedron<R>>,
     camera: Viewport,
     default_color: image::Rgb<u8>,
@@ -108,9 +109,9 @@ impl<R: RayCast<f64>> Scene<R> {
                 let pixel_ray = Ray::new(
                     self.camera.position,
                     Vector3::new(
-                        1.0 - (2.0 * (x as f64 / (self.camera.dimensions.0 as f64))),
+                        1.0 - (2.0 * (f64::from(x) / (self.camera.dimensions.0 as f64))),
                         0.0,
-                        1.0 - (2.0 * (y as f64 / (self.camera.dimensions.1 as f64))),
+                        1.0 - (2.0 * (f64::from(y) / (self.camera.dimensions.1 as f64))),
                     ) + self.camera.eye.dir,
                 );
                 let res = Viewport::draw_ray(&pixel_ray, &object);
