@@ -13,7 +13,7 @@ pub struct Viewport {
     eye: Ray<f64>,
     up: Ray<f64>,
     fov: f64,
-    dimensions: (u32, u32),
+    dimensions: (u64, u64),
 }
 
 impl Viewport {
@@ -22,7 +22,7 @@ impl Viewport {
         eye: Vector3<f64>,
         up: Vector3<f64>,
         fov: f64,
-        dimensions: (u32, u32),
+        dimensions: (u64, u64),
     ) -> Self {
         Viewport {
             position,
@@ -48,7 +48,7 @@ impl Viewport {
 
     /// Makes an imagebuffer from the dimensions of the viewport.
     pub fn imagebuffer(&self) -> image::RgbImage {
-        ImageBuffer::new(self.dimensions.0, self.dimensions.1)
+        ImageBuffer::new(self.dimensions.0 as u32, self.dimensions.1 as u32)
     }
 }
 
@@ -97,12 +97,19 @@ impl<R: RayCast<f64>> Scene<R> {
     // a video a bit easier if we decided to implement that, but given the simplicity of doing that
     // (all we'd need to do is remove the write and return the buffer) I'm keeping it this way
     // until we come up with something better.
-    // TODO: Make this generate a bunch of other rays.
     pub fn render(&self, filename: String) {
         let mut img: image::RgbImage = self.camera.imagebuffer();
         for (x, y, pixel) in img.enumerate_pixels_mut() {
             for object in self.objects.iter() {
-                let res = Viewport::draw_ray(&self.camera.eye, &object);
+                let pixel_ray = Ray::new(
+                    self.camera.position,
+                    Vector3::new(
+                        1.0 - (x as f64 / (self.camera.dimensions.0 as f64)),
+                        0.0,
+                        1.0 - (y as f64 / (self.camera.dimensions.1 as f64)),
+                    ) + self.camera.eye.dir,
+                );
+                let res = Viewport::draw_ray(&pixel_ray, &object);
                 println!("{} {} {:?}", x, y, res);
                 match res {
                     Some(color) => *pixel = color,
