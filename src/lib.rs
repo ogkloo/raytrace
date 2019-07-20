@@ -36,6 +36,11 @@ impl Viewport {
 
     /// Draws a ray at a certain angle and returns the color of whatever it
     /// intersects. Note that the length of the vector does not matter.
+    /// # Arguments:
+    /// * `ray` -  The ray that will get drawn through the object. Note that the size of the ray is of
+    /// no consequence. Most examples here use 1.0 for all fields.
+    /// * `object` - The object that the ray will be drawn through.
+    // TODO: Change this function to use vector of Polyhedrons and update docs to reflect this.
     pub fn draw_ray(ray: &Ray<f64>, object: &Polyhedron) -> Option<image::Rgb<u8>> {
         if object.shape.intersects_ray(&object.position, &ray) {
             Some(object.color)
@@ -51,7 +56,7 @@ impl Viewport {
 }
 
 /// A shape and its material properties. Currently includes color and position in addition to the
-/// basic shape.
+/// basic shape. The object held must be specified as f64.
 pub struct Polyhedron<'a> {
     shape: Box<RayCast<f64> + 'a>,
     color: image::Rgb<u8>,
@@ -97,19 +102,24 @@ impl<'a> Scene<'a> {
         }
     }
 
-    // This is the full-on rendering function, complete with output to an image. Is it more
-    // reasonable to just give an image back? Perhaps. It might make stringing things together into
-    // a video a bit easier if we decided to implement that, but given the simplicity of doing that
-    // (all we'd need to do is remove the write and return the buffer) I'm keeping it this way
-    // until we come up with something better.
-    /// Renders the full image to an output.
+    // Decisions: We write to the image and this function has a side effect. It cuts down on
+    // boilerplate code and is relatievly expected anyways.
+    // Current bug: Any write to the image will go over every object and overwrite the space every
+    // time. This means only the last object in the list will be rendered.
+    // Solution: Loop through each pixel, generate ray which is sent through all objects. The color
+    // of closest one is returned. This is a bit more elegant, but likely requries the full vector
+    // of objects to be passed to draw_ray() every time.
+    /// Renders the full image to an output file.
+    ///
+    /// # Warning
+    /// This may take awhile depending on how large of an image you specify in the camera.
+    ///
+    /// # Note
+    /// Currently, the camera's shape cannot be set, but this would be a good feature to add!
     pub fn render(&self, filename: String) {
         let mut img: image::RgbImage = self.camera.imagebuffer();
         for (x, y, pixel) in img.enumerate_pixels_mut() {
             for object in &self.objects {
-                // println!("{:?}", object);
-                // Generate the ray to a certain pixel. This currently has a bug where it goes from
-                // 1..1/size_of_side. This means the image usually won't render correctly.
                 let pixel_ray = Ray::new(
                     self.camera.position,
                     Vector3::new(
@@ -119,7 +129,6 @@ impl<'a> Scene<'a> {
                     ) + self.camera.eye.dir,
                 );
                 let res = Viewport::draw_ray(&pixel_ray, &object);
-                // println!("{} {} {:?} {:?}", x, y, pixel_ray, res);
                 match res {
                     Some(color) => *pixel = color,
                     None => *pixel = self.default_color,
