@@ -17,6 +17,7 @@ pub struct Viewport {
 }
 
 impl Viewport {
+    #[inline]
     pub fn new(
         position: Point<f64>,
         eye: Vector3<f64>,
@@ -52,19 +53,25 @@ impl Viewport {
     }
 }
 
-/// A shape and its material properties
-// Other properties go here as we progress
+/// A shape and its material properties. Currently includes color and position in addition to the
+/// basic shape.
 #[derive(Debug)]
 pub struct Polyhedron<R: RayCast<f64>> {
     shape: R,
     color: image::Rgb<u8>,
+    position: Isometry3<f64>,
     // reflectivity: f64,
     // refractivity: f64,
 }
 
 impl<R: RayCast<f64>> Polyhedron<R> {
+    #[inline]
     pub fn new(shape: R, color: image::Rgb<u8>) -> Self {
-        Polyhedron { shape, color }
+        Polyhedron {
+            shape,
+            color,
+            position: Isometry3::identity(),
+        }
     }
 }
 
@@ -82,6 +89,7 @@ pub struct Scene<R: RayCast<f64>> {
 }
 
 impl<R: RayCast<f64>> Scene<R> {
+    #[inline]
     pub fn new(
         objects: Vec<Polyhedron<R>>,
         camera: Viewport,
