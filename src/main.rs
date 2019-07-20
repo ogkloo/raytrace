@@ -11,8 +11,8 @@ fn main() {
     let xsize = 500;
     let ysize = 500;
     let view = Viewport::new(
-        Point::new(0.0, 5.0, 5.0),
-        Vector3::new(0.0, -1.0, -1.0),
+        Point::new(0.0, 0.0, 0.0),
+        Vector3::new(0.0, -1.0, 0.0),
         Vector3::new(0.0, 0.0, 1.0),
         std::f64::consts::PI / 2.0,
         (xsize, ysize),
@@ -43,6 +43,6 @@ fn main() {
     let sphere: Polyhedron =
         Polyhedron::new(Box::new(Ball::new(2.0)), image::Rgb([125, 0, 0]), position2);
     // This is an example scene
-    let scene = Scene::new(vec![sphere, cube], view, image::Rgb([120, 120, 120]));
+    let scene = Scene::new(vec![sphere], view, image::Rgb([120, 120, 120]));
     scene.render("output.png".to_string());
 }
