@@ -40,7 +40,7 @@ impl Viewport {
         ray: &Ray<f64>,
         object: &Polyhedron<R>,
     ) -> Option<image::Rgb<u8>> {
-        if object.shape.intersects_ray(&Isometry3::identity(), &ray) {
+        if object.shape.intersects_ray(&object.position, &ray) {
             Some(object.color)
         } else {
             None
