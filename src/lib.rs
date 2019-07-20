@@ -61,17 +61,22 @@ pub struct Polyhedron<'a> {
     shape: Box<RayCast<f64> + 'a>,
     color: image::Rgb<u8>,
     position: Isometry3<f64>,
+    // These will be turned on when we're done rendering multiple images.
     // reflectivity: f64,
     // refractivity: f64,
 }
 
 impl<'a> Polyhedron<'a> {
     #[inline]
-    pub fn new(shape: Box<RayCast<f64> + 'a>, color: image::Rgb<u8>) -> Self {
+    pub fn new(
+        shape: Box<RayCast<f64> + 'a>,
+        color: image::Rgb<u8>,
+        position: Isometry3<f64>,
+    ) -> Self {
         Polyhedron {
             shape,
             color,
-            position: Isometry3::identity(),
+            position,
         }
     }
 }

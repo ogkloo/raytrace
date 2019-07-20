@@ -1,3 +1,4 @@
+use nalgebra::geometry::Isometry3;
 use nalgebra::Vector3;
 use ncollide3d::math::Point;
 use ncollide3d::shape::*;
@@ -19,8 +20,13 @@ fn main() {
     let cube: Polyhedron = Polyhedron::new(
         Box::new(Cuboid::new(Vector3::new(1.0, 1.0, 1.0))),
         image::Rgb([0, 0, 0]),
+        Isometry3::identity(),
     );
-    let sphere: Polyhedron = Polyhedron::new(Box::new(Ball::new(2.0)), image::Rgb([125, 0, 0]));
+    let sphere: Polyhedron = Polyhedron::new(
+        Box::new(Ball::new(2.0)),
+        image::Rgb([125, 0, 0]),
+        Isometry3::identity(),
+    );
     // This is an example scene
     let scene = Scene::new(vec![sphere, cube], view, image::Rgb([120, 120, 120]));
     scene.render("output.png".to_string());
