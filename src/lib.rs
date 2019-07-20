@@ -36,10 +36,7 @@ impl Viewport {
 
     /// Draws a ray at a certain angle and returns the color of whatever it
     /// intersects. Note that the length of the vector does not matter.
-    pub fn draw_ray<R: RayCast<f64>>(
-        ray: &Ray<f64>,
-        object: &Polyhedron<R>,
-    ) -> Option<image::Rgb<u8>> {
+    pub fn draw_ray(ray: &Ray<f64>, object: &Polyhedron) -> Option<image::Rgb<u8>> {
         if object.shape.intersects_ray(&object.position, &ray) {
             Some(object.color)
         } else {
@@ -55,18 +52,17 @@ impl Viewport {
 
 /// A shape and its material properties. Currently includes color and position in addition to the
 /// basic shape.
-#[derive(Debug)]
-pub struct Polyhedron<R: RayCast<f64>> {
-    shape: R,
+pub struct Polyhedron<'a> {
+    shape: Box<RayCast<f64> + 'a>,
     color: image::Rgb<u8>,
     position: Isometry3<f64>,
     // reflectivity: f64,
     // refractivity: f64,
 }
 
-impl<R: RayCast<f64>> Polyhedron<R> {
+impl<'a> Polyhedron<'a> {
     #[inline]
-    pub fn new(shape: R, color: image::Rgb<u8>) -> Self {
+    pub fn new(shape: Box<RayCast<f64> + 'a>, color: image::Rgb<u8>) -> Self {
         Polyhedron {
             shape,
             color,
@@ -80,22 +76,21 @@ impl<R: RayCast<f64>> Polyhedron<R> {
 // thing. But I can't think of it right now and no one was really sure as trait aliasing is
 // experimental and I'd prefer to keep it to normal code right now.
 /// Describes a scene, including what objects are in the scene, a camera, and a background color.
-#[derive(Debug)]
-pub struct Scene<R: RayCast<f64>> {
+pub struct Scene<'a> {
     // This is annoying but the Vec of Box gives me a warning that I'm not sure on how to fix.
-    objects: Vec<Polyhedron<R>>,
+    objects: Vec<Polyhedron<'a>>,
     camera: Viewport,
     default_color: image::Rgb<u8>,
 }
 
-impl<R: RayCast<f64>> Scene<R> {
+impl<'a> Scene<'a> {
     #[inline]
     pub fn new(
-        objects: Vec<Polyhedron<R>>,
+        objects: Vec<Polyhedron<'a>>,
         camera: Viewport,
         default_color: image::Rgb<u8>,
     ) -> Self {
-        Scene::<R> {
+        Scene::<'a> {
             objects,
             camera,
             default_color,
@@ -112,14 +107,15 @@ impl<R: RayCast<f64>> Scene<R> {
         let mut img: image::RgbImage = self.camera.imagebuffer();
         for (x, y, pixel) in img.enumerate_pixels_mut() {
             for object in &self.objects {
+                // println!("{:?}", object);
                 // Generate the ray to a certain pixel. This currently has a bug where it goes from
                 // 1..1/size_of_side. This means the image usually won't render correctly.
                 let pixel_ray = Ray::new(
                     self.camera.position,
                     Vector3::new(
-                        1.0 - (2.0 * (f64::from(x) / (self.camera.dimensions.0 as f64))),
+                        2.0 - (4.0 * (f64::from(x) / (self.camera.dimensions.0 as f64))),
                         0.0,
-                        1.0 - (2.0 * (f64::from(y) / (self.camera.dimensions.1 as f64))),
+                        2.0 - (4.0 * (f64::from(y) / (self.camera.dimensions.1 as f64))),
                     ) + self.camera.eye.dir,
                 );
                 let res = Viewport::draw_ray(&pixel_ray, &object);
