@@ -79,16 +79,46 @@ impl<'a> Polyhedron<'a> {
     }
 }
 
-// Struct for a scene containing objects and 1 camera. When lights are added they go here. Part of
-// me thinks there's a better way to do this than force a user to look at... >>> <-- this ugly
-// thing. But I can't think of it right now and no one was really sure as trait aliasing is
-// experimental and I'd prefer to keep it to normal code right now.
-/// Describes a scene, including what objects are in the scene, a camera, and a background color.
+/// A light with no direction to it. Sits at a point in space. Intensity is added onto the color of
+/// the object that the light is applied to.
+pub struct Light {
+    position: Point<f64>,
+    intensity: u8,
+}
+
+impl Light {
+    /// Applies the intensity of the light to an object and return the new color.
+    pub fn apply_intensity(&self, object: &Polyhedron) -> image::Rgb<u8> {
+        image::Rgb([
+            object.color[0] + self.intensity,
+            object.color[1] + self.intensity,
+            object.color[2] + self.intensity,
+        ])
+    }
+
+    /// Checks if there are objects in the way of the position and the light.
+    ///
+    /// # Note:
+    /// Ideally this would only check some subset of the objects in the scene. Binary space
+    /// partitioning would do that. Since we're primarily interested in readability and having
+    /// actually working code at the moment, this is left to another time.
+    pub fn draw_ray_to<'a>(&self, point: Point<f64>, objects: &[Polyhedron<'a>]) -> bool {
+        false
+    }
+}
+
+/// Describes a scene, including what objects are in the scene, a camera, ambient lighting, and a
+/// background color.
+///
+/// # Note
+/// Ambient light currently adds. It should not. It should instead multiply. This is because we
+/// need to make sure the API part of lighting actually works and it's a lot harder to do if
+/// everything is just blacked out regularly.
 pub struct Scene<'a> {
-    // This is annoying but the Vec of Box gives me a warning that I'm not sure on how to fix.
     objects: Vec<Polyhedron<'a>>,
     camera: Viewport,
     default_color: image::Rgb<u8>,
+    ambient_light: u8,
 }
 
 impl<'a> Scene<'a> {
@@ -97,21 +127,33 @@ impl<'a> Scene<'a> {
         objects: Vec<Polyhedron<'a>>,
         camera: Viewport,
         default_color: image::Rgb<u8>,
+        ambient_light: u8,
     ) -> Self {
         Scene::<'a> {
             objects,
             camera,
             default_color,
+            ambient_light,
         }
     }
 
-    // Decisions: We write to the image and this function has a side effect. It cuts down on
-    // boilerplate code and is relatievly expected anyways.
-    // Current bug: Any write to the image will go over every object and overwrite the space every
-    // time. This means only the last object in the list will be rendered.
-    // Solution: Loop through each pixel, generate ray which is sent through all objects. The color
-    // of closest one is returned. This is a bit more elegant, but likely requries the full vector
-    // of objects to be passed to draw_ray() every time.
+    /// Safe application of ambient lighting to a color while avoiding overflow.
+    fn apply_ambient(&self, color: image::Rgb<u8>) -> image::Rgb<u8> {
+        let red = match color[0].checked_add(self.ambient_light) {
+            Some(res) => res,
+            None => 255,
+        };
+        let green = match color[1].checked_add(self.ambient_light) {
+            Some(res) => res,
+            None => 255,
+        };
+        let blue = match color[2].checked_add(self.ambient_light) {
+            Some(res) => res,
+            None => 255,
+        };
+        image::Rgb([red, green, blue])
+    }
+
     /// Renders the full image to an output file.
     ///
     /// # Warning
@@ -126,7 +168,7 @@ impl<'a> Scene<'a> {
             panic!("Please specify objects for rendering.");
         }
         for (x, y, pixel) in img.enumerate_pixels_mut() {
-            *pixel = self.default_color;
+            *pixel = self.apply_ambient(self.default_color);
             let pixel_ray = Ray::new(
                 self.camera.position,
                 Vector3::new(
@@ -143,7 +185,7 @@ impl<'a> Scene<'a> {
                     // that we have to replace it as it's the furthest thing away. We saw
                     // nothing with the last ray we drew with the first object.
                     if closest == None || (distance < closest.unwrap().0) {
-                        *pixel = color;
+                        *pixel = self.apply_ambient(color);
                         closest = Some((distance, color));
                     } else {
                         *pixel = closest.unwrap().1;
