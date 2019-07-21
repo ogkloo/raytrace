@@ -34,9 +34,8 @@ impl Viewport {
         }
     }
 
-    /// Draws a ray at a certain angle and returns the color and distance
-    /// ito whatever it hits. ntersects. Note that the length of the
-    /// ray does not matter (in examples all fields are usually 1.0).
+    /// Draws a ray at a certain angle and returns the color and distance to whatever it hits.
+    /// Note that the length of the ray does not matter (in examples all fields are usually 1.0).
     /// # Arguments:
     /// * `ray` -  The ray that will get drawn through the object. Note that the size of the ray is of
     /// no consequence. Most examples here use 1.0 for all fields.

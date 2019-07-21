@@ -16,5 +16,9 @@ to images quickly and behind a layer of abstraction. Hopefully this makes
 it just a bit easier for someone somewhere to understand raytracing and not 
 need to cobble the idea together from Wikipedia pages and YouTube lectures.
 
+# Sample -- What currently works
+We've made it to about 1978, just before Turner Whitted figured out shadows.
+![Sample image](highres_sample.png)
+
 ## License
 This project is licensed under the MIT license. See `LICENSE` for more information.
