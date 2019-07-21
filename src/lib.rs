@@ -34,18 +34,17 @@ impl Viewport {
         }
     }
 
-    /// Draws a ray at a certain angle and returns the color of whatever it
-    /// intersects. Note that the length of the vector does not matter.
+    /// Draws a ray at a certain angle and returns the color and distance
+    /// ito whatever it hits. ntersects. Note that the length of the
+    /// ray does not matter (in examples all fields are usually 1.0).
     /// # Arguments:
     /// * `ray` -  The ray that will get drawn through the object. Note that the size of the ray is of
     /// no consequence. Most examples here use 1.0 for all fields.
     /// * `object` - The object that the ray will be drawn through.
-    // TODO: Change this function to use vector of Polyhedrons and update docs to reflect this.
-    pub fn draw_ray(ray: &Ray<f64>, object: &Polyhedron) -> Option<image::Rgb<u8>> {
-        if object.shape.intersects_ray(&object.position, &ray) {
-            Some(object.color)
-        } else {
-            None
+    pub fn draw_ray(ray: &Ray<f64>, object: &Polyhedron) -> Option<(f64, image::Rgb<u8>)> {
+        match object.shape.toi_with_ray(&object.position, &ray, false) {
+            Some(distance) => Some((distance, object.color)),
+            None => None,
         }
     }
 
@@ -120,23 +119,36 @@ impl<'a> Scene<'a> {
     /// This may take awhile depending on how large of an image you specify in the camera.
     ///
     /// # Note
-    /// Currently, the camera's shape cannot be set, but this would be a good feature to add!
+    /// Currently, the camera's shape (and size, fov) cannot be meaningfully set,
+    /// but this would be a good feature to add!
     pub fn render(&self, filename: String) {
         let mut img: image::RgbImage = self.camera.imagebuffer();
+        if self.objects.is_empty() {
+            panic!("Please specify objects for rendering.");
+        }
         for (x, y, pixel) in img.enumerate_pixels_mut() {
+            *pixel = self.default_color;
+            let pixel_ray = Ray::new(
+                self.camera.position,
+                Vector3::new(
+                    2.0 - (4.0 * (f64::from(x) / (self.camera.dimensions.0 as f64))),
+                    0.0,
+                    2.0 - (4.0 * (f64::from(y) / (self.camera.dimensions.1 as f64))),
+                ) + self.camera.eye.dir,
+            );
+            let mut closest = Viewport::draw_ray(&pixel_ray, &self.objects[0]);
             for object in &self.objects {
-                let pixel_ray = Ray::new(
-                    self.camera.position,
-                    Vector3::new(
-                        2.0 - (4.0 * (f64::from(x) / (self.camera.dimensions.0 as f64))),
-                        0.0,
-                        2.0 - (4.0 * (f64::from(y) / (self.camera.dimensions.1 as f64))),
-                    ) + self.camera.eye.dir,
-                );
                 let res = Viewport::draw_ray(&pixel_ray, &object);
-                match res {
-                    Some(color) => *pixel = color,
-                    None => *pixel = self.default_color,
+                if let Some((distance, color)) = res {
+                    // This unwrap() is okay because we check for None -- if it's None, we know
+                    // that we have to replace it as it's the furthest thing away. We saw
+                    // nothing with the last ray we drew with the first object.
+                    if closest == None || (distance < closest.unwrap().0) {
+                        *pixel = color;
+                        closest = Some((distance, color));
+                    } else {
+                        *pixel = closest.unwrap().1;
+                    }
                 }
             }
         }

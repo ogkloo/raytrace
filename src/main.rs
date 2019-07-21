@@ -8,33 +8,33 @@ use ncollide3d::shape::*;
 use raytrace::*;
 
 fn main() {
-    let xsize = 500;
-    let ysize = 500;
+    let xsize = 640;
+    let ysize = 480;
     let view = Viewport::new(
-        Point::new(0.0, 0.0, 0.0),
+        Point::new(0.0, 10.0, 1.0),
         Vector3::new(0.0, -1.0, 0.0),
         Vector3::new(0.0, 0.0, 1.0),
         std::f64::consts::PI / 2.0,
         (xsize, ysize),
     );
-    // A pair of example isometries. This is the way you express position of an object--
-    // Collision is checked between a ray (our camera's light ray) and a RayCast object (ie a
+    // Example isometries. This is the way you express position of an object-- Collision is
+    // checked between a ray (our camera's light ray) and a RayCast object (ie a
     // sphere, cuboid, etc) under a certain isometry.
     // The UnitQuaternion means no rotation. Quaternions are used widely in computer graphics to
     // represent rotation. The Wikipedia: https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
     // This object is at the origin, unrotated.
-    let position = Isometry3::from_parts(
-        Translation3::from(Vector3::new(0.0, 0.0, 0.0)),
-        UnitQuaternion::identity(),
-    );
     // This object is at (0, 0, 3), unrotated.
     let position2 = Isometry3::from_parts(
-        Translation3::from(Vector3::new(0.0, 0.0, 3.0)),
+        Translation3::from(Vector3::new(0.0, 0.0, 9.0)),
         UnitQuaternion::identity(),
     );
     // Note on building polyhedrons:
     // The position of the polyhedron must be noted as an isometry in 3d
     // The RayCast object needs to be implemented as an f64
+    let position = Isometry3::from_parts(
+        Translation3::from(Vector3::new(0.0, 0.0, 0.0)),
+        UnitQuaternion::identity(),
+    );
     let cube: Polyhedron = Polyhedron::new(
         Box::new(Cuboid::new(Vector3::new(1.0, 1.0, 1.0))),
         image::Rgb([0, 0, 0]),
@@ -43,6 +43,6 @@ fn main() {
     let sphere: Polyhedron =
         Polyhedron::new(Box::new(Ball::new(2.0)), image::Rgb([125, 0, 0]), position2);
     // This is an example scene
-    let scene = Scene::new(vec![sphere], view, image::Rgb([120, 120, 120]));
+    let scene = Scene::new(vec![sphere, cube], view, image::Rgb([120, 120, 120]));
     scene.render("output.png".to_string());
 }
