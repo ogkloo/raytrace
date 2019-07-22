@@ -88,12 +88,19 @@ pub struct Light {
 
 impl Light {
     /// Applies the intensity of the light to an object and return the new color.
-    pub fn apply_intensity(&self, object: &Polyhedron) -> image::Rgb<u8> {
+    ///
+    /// # Note
+    /// This function is flawed in a similar fashion to Scene::apply_ambient(). It shouldn't add,
+    /// but should instead scale. This function is also unsafe for the moment, as it may cause an
+    /// overflow (This will result in a panic).
+    pub fn apply_intensity(&self, _object: &Polyhedron) -> image::Rgb<u8> {
+        unimplemented!("apply_intensity");
+        /*
         image::Rgb([
             object.color[0] + self.intensity,
             object.color[1] + self.intensity,
             object.color[2] + self.intensity,
-        ])
+        ])*/
     }
 
     /// Checks if there are objects in the way of the position and the light.
@@ -102,8 +109,8 @@ impl Light {
     /// Ideally this would only check some subset of the objects in the scene. Binary space
     /// partitioning would do that. Since we're primarily interested in readability and having
     /// actually working code at the moment, this is left to another time.
-    pub fn draw_ray_to<'a>(&self, point: Point<f64>, objects: &[Polyhedron<'a>]) -> bool {
-        false
+    pub fn draw_ray_to<'a>(&self, _point: Point<f64>, _objects: &[Polyhedron<'a>]) -> bool {
+        unimplemented!("draw_ray_to");
     }
 }
 
@@ -162,7 +169,7 @@ impl<'a> Scene<'a> {
     /// # Note
     /// Currently, the camera's shape (and size, fov) cannot be meaningfully set,
     /// but this would be a good feature to add!
-    pub fn render(&self, filename: String) {
+    pub fn render(self, filename: String) {
         let mut img: image::RgbImage = self.camera.imagebuffer();
         if self.objects.is_empty() {
             panic!("Please specify objects for rendering.");

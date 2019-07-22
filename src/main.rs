@@ -61,5 +61,6 @@ fn main() {
         image::Rgb([120, 120, 120]),
         90,
     );
+    // Render the scene, consuming it.
     scene.render("output.png".to_string());
 }
