@@ -117,6 +117,7 @@ pub struct Light {
 }
 
 impl Light {
+    #[inline]
     pub fn new(position: Point<f64>, intensity: u8) -> Self {
         Light {
             position,
@@ -162,7 +163,7 @@ pub struct Scene<'a> {
     objects: Vec<Polyhedron<'a>>,
     camera: Viewport,
     default_color: image::Rgb<u8>,
-    ambient_light: u8,
+    ambient_light: f64,
     lights: Vec<Light>,
 }
 
@@ -172,7 +173,7 @@ impl<'a> Scene<'a> {
         objects: Vec<Polyhedron<'a>>,
         camera: Viewport,
         default_color: image::Rgb<u8>,
-        ambient_light: u8,
+        ambient_light: f64,
         lights: Vec<Light>,
     ) -> Self {
         Scene::<'a> {
@@ -184,20 +185,31 @@ impl<'a> Scene<'a> {
         }
     }
 
-    // Find way to change this to be a multiplication and not an addition.
     /// Safe application of ambient lighting to a color while avoiding overflow.
     fn apply_ambient(&self, color: image::Rgb<u8>) -> image::Rgb<u8> {
-        let red = match color[0].checked_mul(self.ambient_light) {
-            Some(res) => res,
-            None => 255,
+        let red = {
+            let c = f64::from(color[0]) * self.ambient_light;
+            if c > 255.0 {
+                255 as u8
+            } else {
+                c as u8
+            }
         };
-        let green = match color[1].checked_mul(self.ambient_light) {
-            Some(res) => res,
-            None => 255,
+        let green = {
+            let c = f64::from(color[1]) * self.ambient_light;
+            if c > 255.0 {
+                255 as u8
+            } else {
+                c as u8
+            }
         };
-        let blue = match color[2].checked_mul(self.ambient_light) {
-            Some(res) => res,
-            None => 255,
+        let blue = {
+            let c = f64::from(color[2]) * self.ambient_light;
+            if c > 255.0 {
+                255 as u8
+            } else {
+                c as u8
+            }
         };
         image::Rgb([red, green, blue])
     }
