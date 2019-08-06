@@ -47,6 +47,29 @@ impl Viewport {
         }
     }
 
+    /// Draw the light ray from an object to a light.
+    /// Will panic if the ray doesn't intersect the object.
+    // Always returns a color. If we're looking at an object, we already know that we hit it.
+    pub fn light_ray(
+        ray: &Ray<f64>,
+        objects: &[Polyhedron],
+        object: &Polyhedron,
+        light: &Light,
+    ) -> image::Rgb<u8> {
+        // Where the object hits the ray.
+        // This is somewhat awkwardly written and requires that we know the ray hits. If we don't
+        // know the ray hits, this function might or might not panic (but let's be honest, probably
+        // will). This will be the point at which we draw the next ray.
+        let point_of_impact = ray.point_at(
+            object
+                .shape
+                .toi_with_ray(&object.position, &ray, false)
+                .unwrap(),
+        );
+        let ray_to_light = Vector3::from(light.position.to_homogeneous());
+        object.color
+    }
+
     /// Makes an imagebuffer from the dimensions of the viewport.
     pub fn imagebuffer(&self) -> image::RgbImage {
         ImageBuffer::new(self.dimensions.0 as u32, self.dimensions.1 as u32)
@@ -87,6 +110,13 @@ pub struct Light {
 }
 
 impl Light {
+    pub fn new(position: Point<f64>, intensity: u8) -> Self {
+        Light {
+            position,
+            intensity,
+        }
+    }
+
     /// Applies the intensity of the light to an object and return the new color.
     ///
     /// # Note
@@ -126,6 +156,7 @@ pub struct Scene<'a> {
     camera: Viewport,
     default_color: image::Rgb<u8>,
     ambient_light: u8,
+    lights: Vec<Light>,
 }
 
 impl<'a> Scene<'a> {
@@ -135,15 +166,18 @@ impl<'a> Scene<'a> {
         camera: Viewport,
         default_color: image::Rgb<u8>,
         ambient_light: u8,
+        lights: Vec<Light>,
     ) -> Self {
         Scene::<'a> {
             objects,
             camera,
             default_color,
             ambient_light,
+            lights,
         }
     }
 
+    // Find way to change this to be a multiplication and not an addition.
     /// Safe application of ambient lighting to a color while avoiding overflow.
     fn apply_ambient(&self, color: image::Rgb<u8>) -> image::Rgb<u8> {
         let red = match color[0].checked_add(self.ambient_light) {
@@ -198,6 +232,7 @@ impl<'a> Scene<'a> {
                         *pixel = closest.unwrap().1;
                     }
                 }
+                Viewport::light_ray(&pixel_ray, &self.objects, &self.objects[0], &self.lights[0]);
             }
         }
         img.save(filename).unwrap();
