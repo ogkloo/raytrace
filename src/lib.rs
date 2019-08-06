@@ -53,21 +53,28 @@ impl Viewport {
     pub fn light_ray(
         ray: &Ray<f64>,
         objects: &[Polyhedron],
-        object: &Polyhedron,
+        impacted_object: &Polyhedron,
         light: &Light,
     ) -> image::Rgb<u8> {
+        let toi = impacted_object
+            .shape
+            .toi_with_ray(&impacted_object.position, &ray, false)
+            .unwrap();
         // Where the object hits the ray.
-        // This is somewhat awkwardly written and requires that we know the ray hits. If we don't
-        // know the ray hits, this function might or might not panic (but let's be honest, probably
-        // will). This will be the point at which we draw the next ray.
-        let point_of_impact = ray.point_at(
-            object
-                .shape
-                .toi_with_ray(&object.position, &ray, false)
-                .unwrap(),
-        );
-        let ray_to_light = Vector3::from(light.position.to_homogeneous());
-        object.color
+        // Requires that we know that the ray hits. If it doesn't, this will panic. Since this is
+        // only intended for internal use I'm willing to take that bet.
+        let point_of_impact = ray.point_at(toi);
+        // We need to express the point of where the light is in terms of a vector so that we can
+        // draw a Ray<f64> out to it from point_of_impact.
+        let light_position: Vector3<f64> = light.position.coords;
+        let ray_to_light: Ray<f64> = Ray::new(point_of_impact, light_position - (toi * ray.dir));
+
+        // Check for collisions between all objects and ray_to_light. If we find one closer to
+        // the point of impact than the light, render nothing.
+        // Why is this one not a reference? It already is one.
+        for object in objects {}
+
+        impacted_object.color
     }
 
     /// Makes an imagebuffer from the dimensions of the viewport.
@@ -180,15 +187,15 @@ impl<'a> Scene<'a> {
     // Find way to change this to be a multiplication and not an addition.
     /// Safe application of ambient lighting to a color while avoiding overflow.
     fn apply_ambient(&self, color: image::Rgb<u8>) -> image::Rgb<u8> {
-        let red = match color[0].checked_add(self.ambient_light) {
+        let red = match color[0].checked_mul(self.ambient_light) {
             Some(res) => res,
             None => 255,
         };
-        let green = match color[1].checked_add(self.ambient_light) {
+        let green = match color[1].checked_mul(self.ambient_light) {
             Some(res) => res,
             None => 255,
         };
-        let blue = match color[2].checked_add(self.ambient_light) {
+        let blue = match color[2].checked_mul(self.ambient_light) {
             Some(res) => res,
             None => 255,
         };
@@ -232,7 +239,7 @@ impl<'a> Scene<'a> {
                         *pixel = closest.unwrap().1;
                     }
                 }
-                Viewport::light_ray(&pixel_ray, &self.objects, &self.objects[0], &self.lights[0]);
+                // Viewport::light_ray(&pixel_ray, &self.objects, &self.objects[0], &self.lights[0]);
             }
         }
         img.save(filename).unwrap();
