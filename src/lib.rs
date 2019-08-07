@@ -70,8 +70,9 @@ impl Viewport {
         let ray_to_light: Ray<f64> = Ray::new(point_of_impact, light_position - (toi * ray.dir));
 
         // Check for collisions between all objects and ray_to_light. If we find one closer to
-        // the point of impact than the light, render nothing.
-        // Why is this one not a reference? It already is one.
+        // the point of impact than the light, render a black pixel.
+        // Possibly, instead of returning the color, we could return the overall intensity of the
+        // light. This will likely be the better option.
         for object in objects {}
 
         impacted_object.color
@@ -251,7 +252,14 @@ impl<'a> Scene<'a> {
                         *pixel = closest.unwrap().1;
                     }
                 }
-                // Viewport::light_ray(&pixel_ray, &self.objects, &self.objects[0], &self.lights[0]);
+                if !self.lights.is_empty() {
+                    Viewport::light_ray(
+                        &pixel_ray,
+                        &self.objects,
+                        &self.objects[0],
+                        &self.lights[0],
+                    );
+                }
             }
         }
         img.save(filename).unwrap();
