@@ -12,7 +12,7 @@ fn main() {
     let ysize = 1080;
     let view = Viewport::new(
         Point::new(0.0, 10.0, 8.0),
-        Vector3::new(0.0, -1.0, -1.0),
+        Vector3::new(0.0, -2, -1.0),
         Vector3::new(0.0, 0.0, 1.0),
         std::f64::consts::PI / 2.0,
         (xsize, ysize),
