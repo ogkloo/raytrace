@@ -8,11 +8,11 @@ use ncollide3d::shape::*;
 use raytrace::*;
 
 fn main() {
-    let xsize = 1980;
-    let ysize = 1080;
+    let xsize = 640;
+    let ysize = 480;
     let view = Viewport::new(
-        Point::new(0.0, 10.0, 8.0),
-        Vector3::new(0.0, -2, -1.0),
+        Point::new(0.0, 10.0, 10.0),
+        Vector3::new(0.0, -2.0, -1.0),
         Vector3::new(0.0, 0.0, 1.0),
         std::f64::consts::PI / 2.0,
         (xsize, ysize),
@@ -22,11 +22,6 @@ fn main() {
     // sphere, cuboid, etc) under a certain isometry.
     // The UnitQuaternion means no rotation. Quaternions are used widely in computer graphics to
     // represent rotation. The Wikipedia: https://en.wikipedia.org/wiki/Quaternions_and_spatial_rotation
-    // This object is at the origin, unrotated.
-    // This object is at (0, 0, 3), unrotated.
-    // Note on building polyhedrons:
-    // The position of the polyhedron must be noted as an isometry in 3d
-    // The RayCast object needs to be implemented as an f64
     let cube = Polyhedron::new(
         Box::new(Cuboid::new(Vector3::new(1.0, 1.0, 1.0))),
         image::Rgb([255, 0, 255]),
@@ -47,7 +42,7 @@ fn main() {
         Box::new(Ball::new(2.0)),
         image::Rgb([0, 120, 0]),
         Isometry3::from_parts(
-            Translation3::from(Vector3::new(0.0, 0.0, 9.0)),
+            Translation3::from(Vector3::new(6.0, 0.0, 9.0)),
             UnitQuaternion::identity(),
         ),
     );
@@ -55,7 +50,7 @@ fn main() {
         Box::new(Ball::new(2.0)),
         image::Rgb([0, 0, 0]),
         Isometry3::from_parts(
-            Translation3::from(Vector3::new(6.0, 3.0, 9.0)),
+            Translation3::from(Vector3::new(0.0, 3.0, 9.0)),
             UnitQuaternion::identity(),
         ),
     );
@@ -64,6 +59,9 @@ fn main() {
         vec![ground, sphere, sphere2, cube],
         view,
         image::Rgb([120, 120, 120]),
+        0.7,
+        vec![],
     );
+    // Render the scene, consuming it.
     scene.render("output.png".to_string());
 }
