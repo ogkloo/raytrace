@@ -203,6 +203,7 @@ pub struct Polyhedron<'a> {
     // These will be turned on when we're done rendering multiple images.
     // reflectivity: f64,
     // refractivity: f64,
+	material:Material,
 }
 
 impl<'a> Polyhedron<'a> {
@@ -216,6 +217,7 @@ impl<'a> Polyhedron<'a> {
             shape,
             color,
             position,
+			material: Material::new(),
         }
     }
 }
@@ -324,7 +326,7 @@ impl<'a> Scene<'a> {
         };
         image::Rgb([red, green, blue])
     }
-
+	
     /// Renders the full image to an output file.
     ///
     /// # Warning
@@ -367,4 +369,35 @@ impl<'a> Scene<'a> {
         }
         img.save(filename).unwrap();
     }
+}
+/*
+		// explicit
+	fn bar<'a>(x: &'a i32) {
+	}
+
+	* /
+///Function that takes a ray and a vector of objects and spits out whether it hit it or not,
+/// and give the point that it hit. 	
+pub fn find_closest<'a>(ray:Ray, vec_of_polyhedron: &'a Vec<Polyhedron> )-> Option<(Point, Polyhedron<'a>)> {
+		/*
+		if vec_of_polyhedron.len()<1{
+			return None;
+		}
+		let closest= vec_of_polyhedron[0];
+		for polyhedron in vec_of_polyhedron{
+			if dist(closest, ray)< dist(polyhedron, ray){
+				closest= polyhedron;
+			}
+		}
+		return Some(polyhedron.point_hit(ray), closest);
+		*/
+		unimplemented!("find closest unimplimented");
+}*/
+
+pub fn modify_color( viewport: Viewport, object: Polyhedron)-> image::Rgb<u8> {
+		let mut color= MyColor::new();
+		color= MyColor::convert_from_rgb(object.color);
+		color= color.mult(viewport.global_ambient);
+		color= color.mult(object.material.ambient);
+		return color.convert_to_rgb();
 }
