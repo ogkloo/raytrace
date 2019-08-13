@@ -14,6 +14,7 @@ pub struct Viewport {
     up: Ray<f64>,
     fov: f64,
     dimensions: (u64, u64),
+	global_ambient:f64,
 }
 
 impl Viewport {
@@ -24,6 +25,7 @@ impl Viewport {
         up: Vector3<f64>,
         fov: f64,
         dimensions: (u64, u64),
+		
     ) -> Self {
         Viewport {
             position,
@@ -31,9 +33,28 @@ impl Viewport {
             up: Ray::new(position, up),
             fov,
             dimensions,
+			global_ambient:0.3,
         }
     }
 
+	#[inline]
+    pub fn new_with_custom_ambient(
+        position: Point<f64>,
+        eye: Vector3<f64>,
+        up: Vector3<f64>,
+        fov: f64,
+        dimensions: (u64, u64),
+		global_ambient:f64,
+    ) -> Self {
+        Viewport {
+            position,
+            eye: Ray::new(position, eye),
+            up: Ray::new(position, up),
+            fov,
+            dimensions,
+			global_ambient,
+        }
+    }
     /// Draws a ray at a certain angle and returns the color and distance to whatever it hits.
     /// Note that the length of the ray does not matter (in examples all fields are usually 1.0).
     /// # Arguments:
@@ -81,6 +102,96 @@ impl Viewport {
     pub fn imagebuffer(&self) -> image::RgbImage {
         ImageBuffer::new(self.dimensions.0 as u32, self.dimensions.1 as u32)
     }
+}
+
+///A place to access visible information about a Polyhedron
+pub struct  Material{
+	ambient:f64,
+}
+///Currently, Material is not very useful. 
+/// the default ambient light value is stored here
+impl Material{
+	pub fn new()-> Material{
+		Material{
+			ambient: 0.1,
+		}
+	}
+}
+
+/// A way to represent color between 0 and 1 inclusive.
+/// 0 0 0 is black, 1 1 1 is white.
+/// Helps with calculating shadows correctly. 
+pub struct MyColor{
+	r: f64,
+	g: f64,
+	b: f64,
+}
+
+impl MyColor{
+	pub fn new()-> MyColor{
+		MyColor{
+			r:0.0,
+			g:0.0,
+			b:0.0,
+		}
+	}
+	
+	fn clamp_helper(value:f64)->f64{
+		if value< 0.0 {return 0.0;}
+		if value> 1.0 {return 1.0;}
+		return value;
+	}
+	/// Makes sure that this color is within 0 to 1
+	pub fn clamp(self)->MyColor{
+		MyColor{
+			r: Self::clamp_helper(self.r) ,
+			g: Self::clamp_helper(self.g),
+			b: Self::clamp_helper(self.b),
+		}
+		
+	}
+	/// Adds together two colors of type MyColor
+	pub fn add(self, other_color: MyColor)->MyColor{
+		let retval= MyColor{
+			r: (self.r + other_color.r),
+			g: (self.g + other_color.g),
+			b: (self.b + other_color.b),
+		};
+		retval.clamp()
+		
+	}
+	///Multiplies this color by a scalar
+	pub fn mult(self, scalar: f64)->MyColor{
+		let retval= MyColor{
+			r: (self.r * scalar),
+			g: (self.g * scalar),
+			b: (self.b * scalar),
+		};
+		retval.clamp()
+	}
+	
+	/// Converts MyColor to image::Rgb<u8>
+	pub fn convert_to_rgb(self)->image::Rgb<u8>{
+		image::Rgb([
+		(self.r *255.0) as u8,
+		(self.g *255.0) as u8, 
+		(self.b *255.0) as u8
+		])
+	}
+
+	/// converts image::Rgb<u8> into MyColor
+	pub fn convert_from_rgb(color: image::Rgb<u8>)-> MyColor{
+		//use image::buffer::Pixel;
+		//let color_vec= color.channels();
+		let retval= MyColor{
+			r: ((f64::from(color[0]))/255.0),
+			g: ((f64::from(color[1]))/255.0),
+			b: ((f64::from(color[2]))/255.0),
+		};
+		retval.clamp()
+	}
+	
+
 }
 
 /// A shape and its material properties. Currently includes color and position in addition to the
