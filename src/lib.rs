@@ -221,11 +221,16 @@ impl<'a> Polyhedron<'a> {
         }
     }
 
-	pub fn dist(self, ray: &Ray<f64>)-> Option<f64>{
+	//pub fn dist(self, ray: &Ray<f64>)-> Option<f64>{
+	pub fn dist(self, ray: &Ray<f64>)-> f64{
 		match self.shape.toi_with_ray(&self.position, &ray, false) {
-            Some(distance) => Some(distance),
-            None => None,
+            Some(distance) => distance,
+            None => panic!("you messed up the distance"),
         }		
+	}
+
+	pub fn point_hit(self, _ray: &Ray<f64>)-> Point<f64>{
+		unimplemented!("Point hit is unimplimented");
 	}
 
 }
@@ -386,20 +391,24 @@ impl<'a> Scene<'a> {
 	*/
 ///Function that takes a ray and a vector of objects and spits out whether it hit it or not,
 /// and give the point that it hit. 	
-pub fn find_closest<'a>(_ray:Ray<f64>, _vec_of_polyhedron: &'a Vec<Polyhedron> )-> Option<(Point<f64>, Polyhedron<'a>)> {
-		/*
+pub fn find_closest<'a>(ray:Ray<f64>, vec_of_polyhedron: &'a Vec<Polyhedron> )-> Option<(Point<f64>, Polyhedron<'a>)> {
+		
 		if vec_of_polyhedron.len()<1{
 			return None;
 		}
-		let closest= vec_of_polyhedron[0];
+		let mut closest= &vec_of_polyhedron[0];
+		let mut close_dist=closest.dist(&ray);
+
 		for polyhedron in vec_of_polyhedron{
-			if dist(closest, ray)< dist(polyhedron, ray){
+			let polyhedron_dist=polyhedron.dist(&ray);
+			if close_dist> polyhedron_dist{
+				close_dist=polyhedron_dist;
 				closest= polyhedron;
 			}
 		}
-		return Some(polyhedron.point_hit(ray), closest);
-		*/
-		unimplemented!("find closest unimplimented");
+		return Some((closest.point_hit(&ray), *closest));
+		
+		//unimplemented!("find closest unimplimented");
 }
 
 pub fn modify_color( viewport: Viewport, object: Polyhedron)-> image::Rgb<u8> {
