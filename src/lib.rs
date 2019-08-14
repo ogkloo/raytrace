@@ -395,8 +395,7 @@ pub fn find_closest<'a>(ray:Ray, vec_of_polyhedron: &'a Vec<Polyhedron> )-> Opti
 }*/
 
 pub fn modify_color( viewport: Viewport, object: Polyhedron)-> image::Rgb<u8> {
-		let mut color= MyColor::new();
-		color= MyColor::convert_from_rgb(object.color);
+		let mut color= MyColor::convert_from_rgb(object.color);
 		color= color.mult(viewport.global_ambient);
 		color= color.mult(object.material.ambient);
 		return color.convert_to_rgb();
