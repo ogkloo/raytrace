@@ -88,12 +88,12 @@ impl Viewport {
         // We need to express the point of where the light is in terms of a vector so that we can
         // draw a Ray<f64> out to it from point_of_impact.
         let light_position: Vector3<f64> = light.position.coords;
-        let ray_to_light: Ray<f64> = Ray::new(point_of_impact, light_position - (toi * ray.dir));
+        let _ray_to_light: Ray<f64> = Ray::new(point_of_impact, light_position - (toi * ray.dir));
 
         // Check for collisions between all objects and ray_to_light. If we find one closer to
         // the point of impact than the light, render nothing.
         // Why is this one not a reference? It already is one.
-        for object in objects {}
+        for _object in objects {}
 
         impacted_object.color
     }
@@ -220,21 +220,29 @@ impl<'a> Polyhedron<'a> {
 			material: Material::new(),
         }
     }
+
+	pub fn dist(self, ray: &Ray<f64>)-> Option<f64>{
+		match self.shape.toi_with_ray(&self.position, &ray, false) {
+            Some(distance) => Some(distance),
+            None => None,
+        }		
+	}
+
 }
 
 /// A light with no direction to it. Sits at a point in space. Intensity is added onto the color of
 /// the object that the light is applied to.
 pub struct Light {
     position: Point<f64>,
-    intensity: u8,
+    _intensity: u8,
 }
 
 impl Light {
     #[inline]
-    pub fn new(position: Point<f64>, intensity: u8) -> Self {
+    pub fn new(position: Point<f64>, _intensity: u8) -> Self {
         Light {
             position,
-            intensity,
+            _intensity,
         }
     }
 
@@ -277,7 +285,7 @@ pub struct Scene<'a> {
     camera: Viewport,
     default_color: image::Rgb<u8>,
     ambient_light: f64,
-    lights: Vec<Light>,
+    _lights: Vec<Light>,
 }
 
 impl<'a> Scene<'a> {
@@ -287,14 +295,14 @@ impl<'a> Scene<'a> {
         camera: Viewport,
         default_color: image::Rgb<u8>,
         ambient_light: f64,
-        lights: Vec<Light>,
+        _lights: Vec<Light>,
     ) -> Self {
         Scene::<'a> {
             objects,
             camera,
             default_color,
             ambient_light,
-            lights,
+            _lights,
         }
     }
 
@@ -375,10 +383,10 @@ impl<'a> Scene<'a> {
 	fn bar<'a>(x: &'a i32) {
 	}
 
-	* /
+	*/
 ///Function that takes a ray and a vector of objects and spits out whether it hit it or not,
 /// and give the point that it hit. 	
-pub fn find_closest<'a>(ray:Ray, vec_of_polyhedron: &'a Vec<Polyhedron> )-> Option<(Point, Polyhedron<'a>)> {
+pub fn find_closest<'a>(_ray:Ray<f64>, _vec_of_polyhedron: &'a Vec<Polyhedron> )-> Option<(Point<f64>, Polyhedron<'a>)> {
 		/*
 		if vec_of_polyhedron.len()<1{
 			return None;
@@ -392,7 +400,7 @@ pub fn find_closest<'a>(ray:Ray, vec_of_polyhedron: &'a Vec<Polyhedron> )-> Opti
 		return Some(polyhedron.point_hit(ray), closest);
 		*/
 		unimplemented!("find closest unimplimented");
-}*/
+}
 
 pub fn modify_color( viewport: Viewport, object: Polyhedron)-> image::Rgb<u8> {
 		let mut color= MyColor::convert_from_rgb(object.color);
