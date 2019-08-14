@@ -14,7 +14,7 @@ pub struct Viewport {
     up: Ray<f64>,
     fov: f64,
     dimensions: (u64, u64),
-	global_ambient:f64,
+    global_ambient: f64,
 }
 
 impl Viewport {
@@ -25,7 +25,6 @@ impl Viewport {
         up: Vector3<f64>,
         fov: f64,
         dimensions: (u64, u64),
-		
     ) -> Self {
         Viewport {
             position,
@@ -33,18 +32,18 @@ impl Viewport {
             up: Ray::new(position, up),
             fov,
             dimensions,
-			global_ambient:0.3,
+            global_ambient: 0.3,
         }
     }
 
-	#[inline]
+    #[inline]
     pub fn new_with_custom_ambient(
         position: Point<f64>,
         eye: Vector3<f64>,
         up: Vector3<f64>,
         fov: f64,
         dimensions: (u64, u64),
-		global_ambient:f64,
+        global_ambient: f64,
     ) -> Self {
         Viewport {
             position,
@@ -52,7 +51,7 @@ impl Viewport {
             up: Ray::new(position, up),
             fov,
             dimensions,
-			global_ambient,
+            global_ambient,
         }
     }
     /// Draws a ray at a certain angle and returns the color and distance to whatever it hits.
@@ -105,93 +104,91 @@ impl Viewport {
 }
 
 ///A place to access visible information about a Polyhedron
-pub struct  Material{
-	ambient:f64,
+pub struct Material {
+    ambient: f64,
 }
-///Currently, Material is not very useful. 
+///Currently, Material is not very useful.
 /// the default ambient light value is stored here
-impl Material{
-	pub fn new()-> Material{
-		Material{
-			ambient: 0.1,
-		}
-	}
+impl Material {
+    pub fn new() -> Material {
+        Material { ambient: 0.1 }
+    }
 }
 
 /// A way to represent color between 0 and 1 inclusive.
 /// 0 0 0 is black, 1 1 1 is white.
-/// Helps with calculating shadows correctly. 
-pub struct MyColor{
-	r: f64,
-	g: f64,
-	b: f64,
+/// Helps with calculating shadows correctly.
+pub struct MyColor {
+    r: f64,
+    g: f64,
+    b: f64,
 }
 
-impl MyColor{
-	pub fn new()-> MyColor{
-		MyColor{
-			r:0.0,
-			g:0.0,
-			b:0.0,
-		}
-	}
-	
-	fn clamp_helper(value:f64)->f64{
-		if value< 0.0 {return 0.0;}
-		if value> 1.0 {return 1.0;}
-		return value;
-	}
-	/// Makes sure that this color is within 0 to 1
-	pub fn clamp(self)->MyColor{
-		MyColor{
-			r: Self::clamp_helper(self.r) ,
-			g: Self::clamp_helper(self.g),
-			b: Self::clamp_helper(self.b),
-		}
-		
-	}
-	/// Adds together two colors of type MyColor
-	pub fn add(self, other_color: MyColor)->MyColor{
-		let retval= MyColor{
-			r: (self.r + other_color.r),
-			g: (self.g + other_color.g),
-			b: (self.b + other_color.b),
-		};
-		retval.clamp()
-		
-	}
-	///Multiplies this color by a scalar
-	pub fn mult(self, scalar: f64)->MyColor{
-		let retval= MyColor{
-			r: (self.r * scalar),
-			g: (self.g * scalar),
-			b: (self.b * scalar),
-		};
-		retval.clamp()
-	}
-	
-	/// Converts MyColor to image::Rgb<u8>
-	pub fn convert_to_rgb(self)->image::Rgb<u8>{
-		image::Rgb([
-		(self.r *255.0) as u8,
-		(self.g *255.0) as u8, 
-		(self.b *255.0) as u8
-		])
-	}
+impl MyColor {
+    pub fn new() -> MyColor {
+        MyColor {
+            r: 0.0,
+            g: 0.0,
+            b: 0.0,
+        }
+    }
 
-	/// converts image::Rgb<u8> into MyColor
-	pub fn convert_from_rgb(color: image::Rgb<u8>)-> MyColor{
-		//use image::buffer::Pixel;
-		//let color_vec= color.channels();
-		let retval= MyColor{
-			r: ((f64::from(color[0]))/255.0),
-			g: ((f64::from(color[1]))/255.0),
-			b: ((f64::from(color[2]))/255.0),
-		};
-		retval.clamp()
-	}
-	
+    fn clamp_helper(value: f64) -> f64 {
+        if value < 0.0 {
+            return 0.0;
+        }
+        if value > 1.0 {
+            return 1.0;
+        }
+        return value;
+    }
+    /// Makes sure that this color is within 0 to 1
+    pub fn clamp(self) -> MyColor {
+        MyColor {
+            r: Self::clamp_helper(self.r),
+            g: Self::clamp_helper(self.g),
+            b: Self::clamp_helper(self.b),
+        }
+    }
+    /// Adds together two colors of type MyColor
+    pub fn add(self, other_color: MyColor) -> MyColor {
+        let retval = MyColor {
+            r: (self.r + other_color.r),
+            g: (self.g + other_color.g),
+            b: (self.b + other_color.b),
+        };
+        retval.clamp()
+    }
+    ///Multiplies this color by a scalar
+    pub fn mult(self, scalar: f64) -> MyColor {
+        let retval = MyColor {
+            r: (self.r * scalar),
+            g: (self.g * scalar),
+            b: (self.b * scalar),
+        };
+        retval.clamp()
+    }
 
+    /// Converts MyColor to image::Rgb<u8>
+    pub fn convert_to_rgb(self) -> image::Rgb<u8> {
+        image::Rgb([
+            (self.r * 255.0) as u8,
+            (self.g * 255.0) as u8,
+            (self.b * 255.0) as u8,
+        ])
+    }
+
+    /// converts image::Rgb<u8> into MyColor
+    pub fn convert_from_rgb(color: image::Rgb<u8>) -> MyColor {
+        //use image::buffer::Pixel;
+        //let color_vec= color.channels();
+        let retval = MyColor {
+            r: ((f64::from(color[0])) / 255.0),
+            g: ((f64::from(color[1])) / 255.0),
+            b: ((f64::from(color[2])) / 255.0),
+        };
+        retval.clamp()
+    }
 }
 
 /// A shape and its material properties. Currently includes color and position in addition to the
@@ -203,7 +200,7 @@ pub struct Polyhedron<'a> {
     // These will be turned on when we're done rendering multiple images.
     // reflectivity: f64,
     // refractivity: f64,
-	material:Material,
+    material: Material,
 }
 
 impl<'a> Polyhedron<'a> {
@@ -217,22 +214,21 @@ impl<'a> Polyhedron<'a> {
             shape,
             color,
             position,
-			material: Material::new(),
+            material: Material::new(),
         }
     }
 
-	//pub fn dist(self, ray: &Ray<f64>)-> Option<f64>{
-	pub fn dist(self, ray: &Ray<f64>)-> f64{
-		match self.shape.toi_with_ray(&self.position, &ray, false) {
-            Some(distance) => distance,
-            None => panic!("you messed up the distance"),
-        }		
-	}
+    /// Wrapper function over toi_with_ray to return a distance to the object.
+    /// Note: Will panic if the ray misses.
+    pub fn dist(&self, ray: &Ray<f64>) -> f64 {
+        self.shape
+            .toi_with_ray(&self.position, &ray, false)
+            .unwrap()
+    }
 
-	pub fn point_hit(self, _ray: &Ray<f64>)-> Point<f64>{
-		unimplemented!("Point hit is unimplimented");
-	}
-
+    pub fn point_hit(&self, _ray: &Ray<f64>) -> Point<f64> {
+        unimplemented!("Point hit is unimplimented");
+    }
 }
 
 /// A light with no direction to it. Sits at a point in space. Intensity is added onto the color of
@@ -339,7 +335,7 @@ impl<'a> Scene<'a> {
         };
         image::Rgb([red, green, blue])
     }
-	
+
     /// Renders the full image to an output file.
     ///
     /// # Warning
@@ -384,36 +380,37 @@ impl<'a> Scene<'a> {
     }
 }
 /*
-		// explicit
-	fn bar<'a>(x: &'a i32) {
-	}
-
-	*/
-///Function that takes a ray and a vector of objects and spits out whether it hit it or not,
-/// and give the point that it hit. 	
-pub fn find_closest<'a>(ray:Ray<f64>, vec_of_polyhedron: &'a Vec<Polyhedron> )-> Option<(Point<f64>, Polyhedron<'a>)> {
-		
-		if vec_of_polyhedron.len()<1{
-			return None;
-		}
-		let mut closest= &vec_of_polyhedron[0];
-		let mut close_dist=closest.dist(&ray);
-
-		for polyhedron in vec_of_polyhedron{
-			let polyhedron_dist=polyhedron.dist(&ray);
-			if close_dist> polyhedron_dist{
-				close_dist=polyhedron_dist;
-				closest= polyhedron;
-			}
-		}
-		return Some((closest.point_hit(&ray), *closest));
-		
-		//unimplemented!("find closest unimplimented");
+    // explicit
+fn bar<'a>(x: &'a i32) {
 }
 
-pub fn modify_color( viewport: Viewport, object: Polyhedron)-> image::Rgb<u8> {
-		let mut color= MyColor::convert_from_rgb(object.color);
-		color= color.mult(viewport.global_ambient);
-		color= color.mult(object.material.ambient);
-		return color.convert_to_rgb();
+*/
+///Function that takes a ray and a vector of objects and spits out whether it hit it or not,
+/// and give the point that it hit.
+pub fn find_closest<'a>(
+    ray: Ray<f64>,
+    vec_of_polyhedron: &'a [Polyhedron],
+) -> Option<(Point<f64>, &'a Polyhedron<'a>)> {
+    if vec_of_polyhedron.is_empty() {
+        return None;
+    }
+    let mut closest = &vec_of_polyhedron[0];
+    let mut close_dist = closest.dist(&ray);
+
+    for polyhedron in vec_of_polyhedron {
+        let polyhedron_dist = polyhedron.dist(&ray);
+        if close_dist > polyhedron_dist {
+            close_dist = polyhedron_dist;
+            closest = polyhedron;
+        }
+    }
+
+    Some((closest.point_hit(&ray), closest))
+}
+
+pub fn modify_color(viewport: Viewport, object: Polyhedron) -> image::Rgb<u8> {
+    let mut color = MyColor::convert_from_rgb(object.color);
+    color = color.mult(viewport.global_ambient);
+    color = color.mult(object.material.ambient);
+    color.convert_to_rgb()
 }
