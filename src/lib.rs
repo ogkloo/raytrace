@@ -32,7 +32,7 @@ impl Viewport {
             up: Ray::new(position, up),
             fov,
             dimensions,
-            global_ambient: 0.3,
+            global_ambient: 0.9,
         }
     }
 
@@ -54,6 +54,8 @@ impl Viewport {
             global_ambient,
         }
     }
+
+	
     /// Draws a ray at a certain angle and returns the color and distance to whatever it hits.
     /// Note that the length of the ray does not matter (in examples all fields are usually 1.0).
     /// # Arguments:
@@ -62,7 +64,7 @@ impl Viewport {
     /// * `object` - The object that the ray will be drawn through.
     pub fn draw_ray(ray: &Ray<f64>, object: &Polyhedron) -> Option<(f64, image::Rgb<u8>)> {
         match object.shape.toi_with_ray(&object.position, &ray, false) {
-            Some(distance) => Some((distance, object.color)),
+            Some(distance) => Some((distance, modify_color_generic(object))),
             None => None,
         }
     }
@@ -94,7 +96,8 @@ impl Viewport {
         // Why is this one not a reference? It already is one.
         for _object in objects {}
 
-        impacted_object.color
+		modify_color_generic(impacted_object)
+        //impacted_object.color
     }
 
     /// Makes an imagebuffer from the dimensions of the viewport.
@@ -111,7 +114,7 @@ pub struct Material {
 /// the default ambient light value is stored here
 impl Material {
     pub fn new() -> Material {
-        Material { ambient: 0.1 }
+        Material { ambient: 0.4 }
     }
 }
 
@@ -255,7 +258,7 @@ impl Light {
     /// overflow (This will result in a panic).
     pub fn apply_intensity(&self, _object: &Polyhedron) -> image::Rgb<u8> {
         unimplemented!("apply_intensity");
-        /*
+        /* // use modify_color_generic()
         image::Rgb([
             object.color[0] + self.intensity,
             object.color[1] + self.intensity,
@@ -379,12 +382,7 @@ impl<'a> Scene<'a> {
         img.save(filename).unwrap();
     }
 }
-/*
-    // explicit
-fn bar<'a>(x: &'a i32) {
-}
 
-*/
 ///Function that takes a ray and a vector of objects and spits out whether it hit it or not,
 /// and give the point that it hit.
 pub fn find_closest<'a>(
@@ -408,9 +406,28 @@ pub fn find_closest<'a>(
     Some((closest.point_hit(&ray), closest))
 }
 
-pub fn modify_color(viewport: Viewport, object: Polyhedron) -> image::Rgb<u8> {
+pub fn modify_color(viewport: Viewport, object: &Polyhedron) -> image::Rgb<u8> {
     let mut color = MyColor::convert_from_rgb(object.color);
     color = color.mult(viewport.global_ambient);
     color = color.mult(object.material.ambient);
     color.convert_to_rgb()
+}
+
+/// In one of the places that I needed modify_color, I didnt have access
+/// to a viewport. This is a kludged together compromise. 
+/// it takes in only a polyhedron, examines it's color and ambient, then 
+/// gives a color based on global and object ambient light.
+pub fn modify_color_generic(object: &Polyhedron)-> image:: Rgb<u8>{
+	
+	//This wanted some parameters, so I gave it the parameters we used to test
+	//This will not affect the default global ambient light. 
+	let generic= Viewport::new(
+        Point::new(0.0, 10.0, 10.0),
+        Vector3::new(0.0, -2.0, -1.0),
+        Vector3::new(0.0, 0.0, 1.0),
+        std::f64::consts::PI / 2.0,
+        (640, 480),
+    );
+	modify_color(generic, &object)
+
 }
