@@ -223,10 +223,12 @@ impl<'a> Polyhedron<'a> {
 
     /// Wrapper function over toi_with_ray to return a distance to the object.
     /// Note: Will panic if the ray misses.
-    pub fn dist(&self, ray: &Ray<f64>) -> f64 {
-        self.shape
-            .toi_with_ray(&self.position, &ray, false)
-            .unwrap()
+    pub fn dist(&self, ray: &Ray<f64>) -> Option<f64>{
+		let fubar =self.shape.toi_with_ray(&self.position, &ray, false);
+        match fubar{
+            Some(distance)=> Some(distance),
+			None =>None,
+		}
     }
 
     pub fn point_hit(&self, _ray: &Ray<f64>) -> Point<f64> {
@@ -362,6 +364,18 @@ impl<'a> Scene<'a> {
                     2.0 - (4.0 * (f64::from(y) / (self.camera.dimensions.1 as f64))),
                 ) + self.camera.eye.dir,
             );
+			// This would've replaced the for loop and if let statements
+			// it would've made it so that the "find_closest" method was used
+			// and thus would've made implimentation of light possible. 
+			// but, we got held up for awhile with a sneaky panic, and thus
+			// ran out of time
+			/*
+			let something=find_closest(pixel_ray, &self.objects);
+			match something{
+				None => self.apply_ambient(color),
+				Some(_) => *pixel= modify_color_generic(something.unwrap().1),
+			}*/
+			
             let mut closest = Viewport::draw_ray(&pixel_ray, &self.objects[0]);
             for object in &self.objects {
                 let res = Viewport::draw_ray(&pixel_ray, &object);
@@ -378,8 +392,10 @@ impl<'a> Scene<'a> {
                 }
                 // Viewport::light_ray(&pixel_ray, &self.objects, &self.objects[0], &self.lights[0]);
             }
-        }
-        img.save(filename).unwrap();
+			
+		 }
+		
+		img.save(filename).unwrap();
     }
 }
 
@@ -392,11 +408,24 @@ pub fn find_closest<'a>(
     if vec_of_polyhedron.is_empty() {
         return None;
     }
+
+	//unwrap runaround
     let mut closest = &vec_of_polyhedron[0];
-    let mut close_dist = closest.dist(&ray);
+    let temp_dist = closest.dist(&ray);
+	let mut close_dist= match temp_dist{
+		None => return None,
+		Some(dist)=> dist,
+		
+	};
 
     for polyhedron in vec_of_polyhedron {
-        let polyhedron_dist = polyhedron.dist(&ray);
+        //unwrap runaround
+		let temp_dist = polyhedron.dist(&ray);
+		let polyhedron_dist= match temp_dist{
+			None => return None,
+			Some(dist)=> dist,
+		};
+
         if close_dist > polyhedron_dist {
             close_dist = polyhedron_dist;
             closest = polyhedron;
@@ -406,6 +435,9 @@ pub fn find_closest<'a>(
     Some((closest.point_hit(&ray), closest))
 }
 
+/// This modifies color so that the ambient values can be applied. 
+/// it does so by taking the color and doing a scalar multiple by 
+/// the global and material ambient values
 pub fn modify_color(viewport: Viewport, object: &Polyhedron) -> image::Rgb<u8> {
     let mut color = MyColor::convert_from_rgb(object.color);
     color = color.mult(viewport.global_ambient);
