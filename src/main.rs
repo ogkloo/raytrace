@@ -59,7 +59,7 @@ fn main() {
         vec![ground, sphere, sphere2, cube],
         view,
         image::Rgb([120, 120, 120]),
-        0.7,
+        1.0,
         vec![],
     );
     // Render the scene, consuming it.
