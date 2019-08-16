@@ -8,8 +8,8 @@ use ncollide3d::shape::*;
 use raytrace::*;
 
 fn main() {
-    let xsize = 640;
-    let ysize = 480;
+    let xsize = 5760;
+    let ysize = 3240;
     let view = Viewport::new(
         Point::new(0.0, 10.0, 10.0),
         Vector3::new(0.0, -2.0, -1.0),
@@ -59,7 +59,7 @@ fn main() {
         vec![ground, sphere, sphere2, cube],
         view,
         image::Rgb([120, 120, 120]),
-        1.0,
+        2.0,
         vec![],
     );
     // Render the scene, consuming it.
